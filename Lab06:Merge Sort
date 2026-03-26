@@ -51,4 +51,5 @@ int main() {
     for (int i = 0; i < n2; i++)
         cout << arr2[i] << " ";
     return 0;
+
 }
