@@ -1,0 +1,118 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Edge {
+    int u, v, w;
+};
+
+vector<int> parentNode, sz;
+vector<vector<pair<int, int>>> tree;
+vector<long long> subSize;
+vector<long long> bits;
+
+int n, m;
+
+int findParent(int x) {
+    if (parentNode[x] == x)
+        return x;
+    return parentNode[x] = findParent(parentNode[x]);
+}
+
+bool unite(int a, int b) {
+    a = findParent(a);
+    b = findParent(b);
+
+    if (a == b)
+        return false;
+
+    if (sz[a] < sz[b])
+        swap(a, b);
+
+    parentNode[b] = a;
+    sz[a] += sz[b];
+
+    return true;
+}
+
+void dfs(int node, int parent) {
+    subSize[node] = 1;
+
+    for (int i = 0; i < (int)tree[node].size(); i++) {
+        int nextNode = tree[node][i].first;
+        int weightExp = tree[node][i].second;
+
+        if (nextNode == parent)
+            continue;
+
+        dfs(nextNode, node);
+
+        long long s = subSize[nextNode];
+
+        bits[weightExp] += s * (n - s);
+
+        subSize[node] += s;
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    cin >> n >> m;
+
+    vector<Edge> edges(m);
+
+    int maxW = 0;
+
+    for (int i = 0; i < m; i++) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].w;
+        maxW = max(maxW, edges[i].w);
+    }
+
+    sort(edges.begin(), edges.end(),
+         [](const Edge &a, const Edge &b) {
+             return a.w < b.w;
+         });
+
+    parentNode.resize(n + 1);
+    sz.assign(n + 1, 1);
+
+    for (int i = 1; i <= n; i++) {
+        parentNode[i] = i;
+    }
+
+    tree.assign(n + 1, vector<pair<int, int>>());
+
+    for (int i = 0; i < m; i++) {
+        if (unite(edges[i].u, edges[i].v)) {
+            tree[edges[i].u].push_back({edges[i].v, edges[i].w});
+            tree[edges[i].v].push_back({edges[i].u, edges[i].w});
+        }
+    }
+
+    bits.assign(maxW + 100005, 0);
+    subSize.assign(n + 1, 0);
+
+    dfs(1, 0);
+
+    for (int i = 0; i < (int)bits.size() - 1; i++) {
+        bits[i + 1] += bits[i] / 2;
+        bits[i] %= 2;
+    }
+
+    int highest = (int)bits.size() - 1;
+
+    while (highest > 0 && bits[highest] == 0) {
+        highest--;
+    }
+
+    string answer;
+
+    for (int i = highest; i >= 0; i--) {
+        answer.push_back(char(bits[i] + '0'));
+    }
+
+    cout << answer << '\n';
+
+    return 0;
+}
