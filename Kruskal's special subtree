@@ -1,0 +1,63 @@
+#include <bits/stdc++.h>
+using namespace std;
+class DSU {
+public:
+    vector<int> parent, sz;
+    DSU(int n) {
+        parent.resize(n + 1);
+        sz.resize(n + 1, 1);
+
+        for (int i = 1; i <= n; i++) {
+            parent[i] = i;
+        }
+    }
+    int find(int x) {
+        if (parent[x] == x)
+            return x;
+        return parent[x] = find(parent[x]);
+    }
+    bool unite(int a, int b) {
+        a = find(a);
+        b = find(b);
+        if (a == b)
+            return false;
+        if (sz[a] < sz[b])
+            swap(a, b);
+        parent[b] = a;
+        sz[a] += sz[b];
+        return true;
+    }
+};
+int kruskals(int g_nodes,
+             vector<int> g_from,
+             vector<int> g_to,
+             vector<int> g_weight) {
+    vector<pair<int, pair<int, int>>> edges;
+    for (int i = 0; i < (int)g_from.size(); i++) {
+        edges.push_back({g_weight[i], {g_from[i], g_to[i]}});
+    }
+    sort(edges.begin(), edges.end());
+    DSU dsu(g_nodes);
+    int mstWeight = 0;
+    for (auto &e : edges) {
+        int w = e.first;
+        int u = e.second.first;
+        int v = e.second.second;
+        if (dsu.unite(u, v)) {
+            mstWeight += w;
+        }
+    }
+    return mstWeight;
+}
+int main() {
+    int g_nodes, g_edges;
+    cin >> g_nodes >> g_edges;
+    vector<int> g_from(g_edges);
+    vector<int> g_to(g_edges);
+    vector<int> g_weight(g_edges);
+    for (int i = 0; i < g_edges; i++) {
+        cin >> g_from[i] >> g_to[i] >> g_weight[i];
+    }
+    cout << kruskals(g_nodes, g_from, g_to, g_weight) << endl;
+    return 0;
+}
